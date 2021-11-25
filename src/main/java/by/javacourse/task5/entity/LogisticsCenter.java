@@ -34,7 +34,6 @@ public class LogisticsCenter {
 	private AtomicInteger currentGoodsQuantity = new AtomicInteger();
 	private Deque<Terminal> terminals = new ArrayDeque<Terminal>();
 	private Lock locker = new ReentrantLock();
-	private Condition condition = locker.newCondition();
 	private Semaphore semaphore = new Semaphore(NUMBER_OF_TERMINALS, true);
 
 	private LogisticsCenter() {
