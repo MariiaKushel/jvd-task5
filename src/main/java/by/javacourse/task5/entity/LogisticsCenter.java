@@ -1,8 +1,16 @@
 package by.javacourse.task5.entity;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -20,13 +28,14 @@ public class LogisticsCenter {
 	private static AtomicBoolean instanceIsExist = new AtomicBoolean(false);
 	private static Lock instanceLocker = new ReentrantLock();
 
-	public static final int NUMBER_OF_TERMINALS = 3;
+	public static final int NUMBER_OF_TERMINALS = 20;
 	public static final int LOGISTICS_CENTER_CAPASITY = 5000;
 
 	private AtomicInteger currentGoodsQuantity = new AtomicInteger();
 	private Deque<Terminal> terminals = new ArrayDeque<Terminal>();
-	private Deque<Lock> truckLockers = new ArrayDeque<Lock>();
-	private Deque<Condition> truckConditions = new ArrayDeque<Condition>();
+	private Lock locker = new ReentrantLock();
+	private Condition condition = locker.newCondition();
+	private Semaphore semaphore = new Semaphore(NUMBER_OF_TERMINALS, true);
 
 	private LogisticsCenter() {
 		for (int i = 0; i < NUMBER_OF_TERMINALS; i++) {
@@ -52,55 +61,45 @@ public class LogisticsCenter {
 		return instance;
 	}
 
-	public Terminal getTerminal(String licensePlate) {
+	public Terminal getTerminal(boolean perishableGoods) {
 
-		Lock truckLocker = new ReentrantLock();
-		Condition truckCondition = truckLocker.newCondition();
-
-		truckLocker.lock();
-
-		truckLockers.add(truckLocker);
-		truckConditions.add(truckCondition);
-
-		Terminal freeTerminal = null;
 		try {
-			while (terminals.isEmpty()) {
-				logger.info(licensePlate + " wait");
-				truckCondition.await();
-			}
-			freeTerminal = terminals.poll();
-			truckLockers.remove();
-			truckConditions.remove();
-			logger.info(licensePlate + " got terminal " + freeTerminal.getTerminalId());
-
+			semaphore.acquire();
 		} catch (InterruptedException e) {
-			logger.error("InterruptedException");
-		} finally {
-			truckLocker.unlock();
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
+		return getFirstAvailableTerminal();
+
+	}
+
+	public void releaseTerminal(Terminal terminal) {
+		releaseUsingTerminal(terminal);
+		semaphore.release();
+	}
+
+	public Terminal getFirstAvailableTerminal() {
+		locker.lock();
+		Terminal freeTerminal = null;
+		try {
+			freeTerminal = terminals.poll();
+			logger.info(Thread.currentThread().getName() + " got terminal " + freeTerminal.getTerminalId());
+		} finally {
+			locker.unlock();
+		}
 		return freeTerminal;
 	}
 
-	public void releaseTerminal(String licensePlate, Terminal terminal) {
+	public void releaseUsingTerminal(Terminal terminal) {
 
-		if (truckLockers.peekFirst() == null) {
-			logger.info(licensePlate + " release terminal " + terminal.getTerminalId());
-			return;
-		}
-		
-		Lock truckLocker = truckLockers.getFirst();
-		Condition truckCondition = truckConditions.getFirst();
-
-		truckLocker.lock();
+		locker.lock();
 		try {
 			terminals.add(terminal);
-			truckCondition.signal();
-			logger.info(licensePlate + " release terminal " + terminal.getTerminalId());
+			logger.info(Thread.currentThread().getName() + " release " + terminal.getTerminalId());
 		} finally {
-			truckLocker.unlock();
+			locker.unlock();
 		}
-
 	}
 
 	public void addGoods(int quantity) {

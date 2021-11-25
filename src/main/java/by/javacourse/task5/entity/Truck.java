@@ -3,14 +3,14 @@ package by.javacourse.task5.entity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Truck implements Runnable {
+public class Truck extends Thread {
 
 	static Logger logger = LogManager.getLogger();
 
 	public static final int TRUCK_CAPACITY = 60;
 	private String licensePlate; // analogue id
 	private boolean perishableGoods;
-	private TruckState state;
+	private TruckState truckState;
 	private Task task;
 
 	public enum TruckState {
@@ -25,25 +25,27 @@ public class Truck implements Runnable {
 		this.licensePlate = licensePlate;
 		this.perishableGoods = perishableGoods;
 		this.task = task;
-		this.state = TruckState.NEW;
+		this.truckState = TruckState.NEW;
+
+		this.setName(licensePlate);
 	}
 
 	@Override
 	public void run() {
 
-		this.state = TruckState.IN_PROCESS;
+		this.truckState = TruckState.IN_PROCESS;
 
 		LogisticsCenter center = LogisticsCenter.getInstance();
-		Terminal terminal = center.getTerminal(licensePlate);
-		
+		Terminal terminal = center.getTerminal(perishableGoods);
+
 		switch (task) {
-		case LOADING -> terminal.loadTruck(licensePlate);
-		case UNLOADING -> terminal.unloadTruck(licensePlate);
+		case LOADING -> terminal.loadTruck();
+		case UNLOADING -> terminal.unloadTruck();
 		}
 
-		center.releaseTerminal(licensePlate, terminal);
+		center.releaseTerminal(terminal);
 
-		this.state = TruckState.COMPLITED;
+		this.truckState = TruckState.COMPLITED;
 
 	}
 
@@ -51,8 +53,8 @@ public class Truck implements Runnable {
 		return perishableGoods;
 	}
 
-	public TruckState getState() {
-		return state;
+	public TruckState getTruckState() {
+		return truckState;
 	}
 
 	public Task getTask() {

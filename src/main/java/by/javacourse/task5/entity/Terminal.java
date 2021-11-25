@@ -18,27 +18,27 @@ public class Terminal {
 		terminalId = GeneratorTerminalId.generete();
 	}
 
-	public void loadTruck(String licensePlate) {
+	public void loadTruck() {
 
 		LogisticsCenter center = LogisticsCenter.getInstance();
 		center.removeGoods(Truck.TRUCK_CAPACITY);
 
 		try {
-			logger.info(licensePlate + " loading...");
-			TimeUnit.SECONDS.sleep(new Random().nextInt(30));
+			logger.info(Thread.currentThread().getName()  + " loading...");
+			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(100));
 		} catch (InterruptedException e) {
 			logger.error("InterruptedException");
 		}
 	}
 
-	public void unloadTruck(String licensePlate) {
+	public void unloadTruck() {
 		
 		LogisticsCenter center = LogisticsCenter.getInstance();
 		center.addGoods(Truck.TRUCK_CAPACITY);
 		
 		try {
-			logger.info(licensePlate + " unloading...");
-			TimeUnit.SECONDS.sleep(new Random().nextInt(5));
+			logger.info(Thread.currentThread().getName() + " unloading...");
+			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(100));
 		} catch (InterruptedException e) {
 			logger.error("InterruptedException");
 		}
