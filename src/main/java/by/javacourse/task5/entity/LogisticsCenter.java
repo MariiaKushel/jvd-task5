@@ -1,19 +1,12 @@
 package by.javacourse.task5.entity;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -34,7 +27,9 @@ public class LogisticsCenter {
 	private AtomicInteger currentGoodsQuantity = new AtomicInteger();
 	private Deque<Terminal> terminals = new ArrayDeque<Terminal>();
 	private Lock locker = new ReentrantLock();
-	private Semaphore semaphore = new Semaphore(NUMBER_OF_TERMINALS, true);
+
+	private Semaphore prioretySemaphore = new Semaphore(NUMBER_OF_TERMINALS, true);
+	private Semaphore nonPrioretySemaphore = new Semaphore(1, true);
 
 	private LogisticsCenter() {
 		for (int i = 0; i < NUMBER_OF_TERMINALS; i++) {
@@ -63,35 +58,44 @@ public class LogisticsCenter {
 	public Terminal getTerminal(boolean perishableGoods) {
 
 		try {
-			semaphore.acquire();
+			if (!perishableGoods) {
+				nonPrioretySemaphore.acquire();
+				while (prioretySemaphore.availablePermits() < 1) {
+					TimeUnit.MILLISECONDS.sleep(Terminal.MAX_LOAD_UNLOAD_TIME);
+				}
+				nonPrioretySemaphore.release();
+			}
+			prioretySemaphore.acquire();
+
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(Thread.currentThread().getName() + "was interrupted.");
+			Thread.currentThread().interrupt();
 		}
 
-		return getFirstAvailableTerminal();
+		return getFirstAvailableTerminal(perishableGoods);
 
 	}
 
 	public void releaseTerminal(Terminal terminal) {
 		releaseUsingTerminal(terminal);
-		semaphore.release();
+		prioretySemaphore.release();
 	}
 
-	public Terminal getFirstAvailableTerminal() {
+	private Terminal getFirstAvailableTerminal(boolean perishableGoods) {
 		locker.lock();
 		Terminal freeTerminal = null;
 		try {
 			freeTerminal = terminals.poll();
-			logger.info(Thread.currentThread().getName() + " got terminal " + freeTerminal.getTerminalId());
+			logger.info(Thread.currentThread().getName() + " got terminal " + freeTerminal.getTerminalId() + " "
+					+ perishableGoods);
+
 		} finally {
 			locker.unlock();
 		}
 		return freeTerminal;
 	}
 
-	public void releaseUsingTerminal(Terminal terminal) {
-
+	private void releaseUsingTerminal(Terminal terminal) {
 		locker.lock();
 		try {
 			terminals.add(terminal);
@@ -111,6 +115,10 @@ public class LogisticsCenter {
 
 		currentGoodsQuantity.getAndAdd(-1 * quantity);
 		// FIXME обработать если меньше 0
+	}
+
+	public AtomicInteger getCurrentGoodsQuantity() {
+		return currentGoodsQuantity;
 	}
 
 }

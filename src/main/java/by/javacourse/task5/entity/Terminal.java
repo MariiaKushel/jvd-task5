@@ -12,6 +12,8 @@ public class Terminal {
 
 	static Logger logger = LogManager.getLogger();
 
+	public static final int MAX_LOAD_UNLOAD_TIME = 100;
+
 	private long terminalId;
 
 	public Terminal() {
@@ -24,23 +26,25 @@ public class Terminal {
 		center.removeGoods(Truck.TRUCK_CAPACITY);
 
 		try {
-			logger.info(Thread.currentThread().getName()  + " loading...");
-			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(100));
+			logger.info(Thread.currentThread().getName() + " loading...");
+			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(MAX_LOAD_UNLOAD_TIME));
 		} catch (InterruptedException e) {
-			logger.error("InterruptedException");
+			logger.error(Thread.currentThread().getName() + "was interrupted.");
+			Thread.currentThread().interrupt();
 		}
 	}
 
 	public void unloadTruck() {
-		
+
 		LogisticsCenter center = LogisticsCenter.getInstance();
 		center.addGoods(Truck.TRUCK_CAPACITY);
-		
+
 		try {
 			logger.info(Thread.currentThread().getName() + " unloading...");
-			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(100));
+			TimeUnit.MILLISECONDS.sleep(new Random().nextInt(MAX_LOAD_UNLOAD_TIME));
 		} catch (InterruptedException e) {
-			logger.error("InterruptedException");
+			logger.error(Thread.currentThread().getName() + "was interrupted.");
+			Thread.currentThread().interrupt();
 		}
 	}
 

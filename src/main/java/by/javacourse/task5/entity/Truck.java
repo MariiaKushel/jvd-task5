@@ -8,7 +8,7 @@ public class Truck extends Thread {
 	static Logger logger = LogManager.getLogger();
 
 	public static final int TRUCK_CAPACITY = 60;
-	private String licensePlate; // analogue id
+	private String licensePlate; // analog id
 	private boolean perishableGoods;
 	private TruckState truckState;
 	private Task task;
@@ -26,7 +26,6 @@ public class Truck extends Thread {
 		this.perishableGoods = perishableGoods;
 		this.task = task;
 		this.truckState = TruckState.NEW;
-
 		this.setName(licensePlate);
 	}
 
@@ -38,12 +37,14 @@ public class Truck extends Thread {
 		LogisticsCenter center = LogisticsCenter.getInstance();
 		Terminal terminal = center.getTerminal(perishableGoods);
 
-		switch (task) {
-		case LOADING -> terminal.loadTruck();
-		case UNLOADING -> terminal.unloadTruck();
+		try {
+			switch (task) {
+			case LOADING -> terminal.loadTruck();
+			case UNLOADING -> terminal.unloadTruck();
+			}
+		} finally {
+			center.releaseTerminal(terminal);
 		}
-
-		center.releaseTerminal(terminal);
 
 		this.truckState = TruckState.COMPLITED;
 
