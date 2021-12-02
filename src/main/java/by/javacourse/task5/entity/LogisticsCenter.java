@@ -21,10 +21,10 @@ public class LogisticsCenter {
 	private static Lock instanceLocker = new ReentrantLock();
 
 	public static final int NUMBER_OF_TERMINALS = 20;
-	public static final int LOGISTICS_CENTER_CAPASITY = 5000;
-	public static final int HALF_LOGISTICS_CENTER_CAPASITY = LogisticsCenter.LOGISTICS_CENTER_CAPASITY / 2;
-	public static final int LOW_LIMIT = (int) (0.25 * LogisticsCenter.LOGISTICS_CENTER_CAPASITY);
-	public static final int UPPER_LIMIT = (int) (0.75 * LogisticsCenter.LOGISTICS_CENTER_CAPASITY);
+	public static final int LOGISTICS_CENTER_CAPAСITY = 5000;
+	public static final int HALF_LOGISTICS_CENTER_CAPAСITY = LogisticsCenter.LOGISTICS_CENTER_CAPAСITY / 2;
+	public static final int LOW_LIMIT = (int) (0.25 * LogisticsCenter.LOGISTICS_CENTER_CAPAСITY);
+	public static final int UPPER_LIMIT = (int) (0.75 * LogisticsCenter.LOGISTICS_CENTER_CAPAСITY);
 
 	private AtomicInteger currentGoodsQuantity = new AtomicInteger();
 	private Deque<Terminal> terminals = new ArrayDeque<Terminal>();
@@ -37,7 +37,7 @@ public class LogisticsCenter {
 		for (int i = 0; i < NUMBER_OF_TERMINALS; i++) {
 			terminals.add(new Terminal());
 		}
-		currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPASITY);
+		currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPAСITY);
 	}
 
 	public static LogisticsCenter getInstance() {
@@ -120,7 +120,7 @@ public class LogisticsCenter {
 		try {
 			int current = currentGoodsQuantity.getAcquire();
 			if (current <= LOW_LIMIT || current >= UPPER_LIMIT) {
-				currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPASITY);
+				currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPAСITY);
 				logger.info(Thread.currentThread().getName() + " refreshGoodsQuantity ============== " + currentGoodsQuantity);
 			}
 		} finally {
