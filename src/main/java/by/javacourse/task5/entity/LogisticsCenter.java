@@ -2,7 +2,6 @@ package by.javacourse.task5.entity;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,6 +22,9 @@ public class LogisticsCenter {
 
 	public static final int NUMBER_OF_TERMINALS = 20;
 	public static final int LOGISTICS_CENTER_CAPASITY = 5000;
+	public static final int HALF_LOGISTICS_CENTER_CAPASITY = LogisticsCenter.LOGISTICS_CENTER_CAPASITY / 2;
+	public static final int LOW_LIMIT = (int) (0.25 * LogisticsCenter.LOGISTICS_CENTER_CAPASITY);
+	public static final int UPPER_LIMIT = (int) (0.75 * LogisticsCenter.LOGISTICS_CENTER_CAPASITY);
 
 	private AtomicInteger currentGoodsQuantity = new AtomicInteger();
 	private Deque<Terminal> terminals = new ArrayDeque<Terminal>();
@@ -35,7 +37,7 @@ public class LogisticsCenter {
 		for (int i = 0; i < NUMBER_OF_TERMINALS; i++) {
 			terminals.add(new Terminal());
 		}
-		currentGoodsQuantity.set(new Random().nextInt(3000));
+		currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPASITY);
 	}
 
 	public static LogisticsCenter getInstance() {
@@ -88,7 +90,6 @@ public class LogisticsCenter {
 			freeTerminal = terminals.poll();
 			logger.info(Thread.currentThread().getName() + " got terminal " + freeTerminal.getTerminalId() + " "
 					+ perishableGoods);
-
 		} finally {
 			locker.unlock();
 		}
@@ -106,19 +107,25 @@ public class LogisticsCenter {
 	}
 
 	public void addGoods(int quantity) {
-
 		currentGoodsQuantity.getAndAdd(quantity);
-		// FIXME обработать если больше capasity
 	}
 
 	public void removeGoods(int quantity) {
-
 		currentGoodsQuantity.getAndAdd(-1 * quantity);
-		// FIXME обработать если меньше 0
 	}
 
-	public AtomicInteger getCurrentGoodsQuantity() {
-		return currentGoodsQuantity;
+	public void refreshGoodsQuantity() {
+		locker.lock();
+		logger.info(Thread.currentThread().getName() + " revisor check goods quantity ====== " + currentGoodsQuantity);
+		try {
+			int current = currentGoodsQuantity.getAcquire();
+			if (current <= LOW_LIMIT || current >= UPPER_LIMIT) {
+				currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPASITY);
+				logger.info(Thread.currentThread().getName() + " refreshGoodsQuantity ============== " + currentGoodsQuantity);
+			}
+		} finally {
+			locker.unlock();
+		}
 	}
 
 }

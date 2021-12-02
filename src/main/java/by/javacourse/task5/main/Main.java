@@ -30,8 +30,17 @@ public class Main {
 		TruckParserImpl parser = new TruckParserImpl();
 
 		try {
-			List<String> lines = reader.read("src\\main\\resources\\data\\trucks.txt");
+
+			List<String> lines = reader.read("resources\\data\\trucks.txt");
 			List<Truck> trucks = parser.parse(lines);
+
+//			FOR CREATION RANDOM TRUCKS 
+//			List<Truck> trucks = new ArrayList<Truck>();
+//			for (int i = 0; i < 100; i++) {
+//				boolean perishableGoods = new Random().nextBoolean();
+//				Task task = new Random().nextBoolean() ? Task.LOADING : Task.UNLOADING;
+//				trucks.add(new Truck("Truck-" + i, perishableGoods, task));
+//			}
 
 			ExecutorService executor = Executors.newFixedThreadPool(trucks.size());
 
