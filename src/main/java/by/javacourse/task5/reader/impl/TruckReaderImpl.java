@@ -1,11 +1,16 @@
 package by.javacourse.task5.reader.impl;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,15 +24,17 @@ public class TruckReaderImpl implements TruckReader {
 	@Override
 	public List<String> read(String pathToFile) throws TruckException {
 
-		Path path = Paths.get(pathToFile);
-		if (!Files.exists(path)) {
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(pathToFile);
+		if (inputStream == null) {
 			logger.error("File " + pathToFile + " does not exsist or is not available.");
 			throw new TruckException("File " + pathToFile + " does not exsist or is not available.");
 		}
-
+		
 		List<String> lines = new ArrayList<String>();
 		try {
-			lines = Files.readAllLines(path);
+			String fileContent = new String(inputStream.readAllBytes());
+			lines = Stream.of(fileContent.split(System.lineSeparator())).toList();
+
 		} catch (IOException e) {
 			logger.error("IO Exception while working on the file " + pathToFile + ".");
 			throw new TruckException(

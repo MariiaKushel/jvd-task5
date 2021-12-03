@@ -31,7 +31,7 @@ public class Main {
 
 		try {
 
-			List<String> lines = reader.read("resources\\data\\trucks.txt");
+			List<String> lines = reader.read("src\\main\\resources\\data\\trucks.txt");
 			List<Truck> trucks = parser.parse(lines);
 
 //			FOR CREATION RANDOM TRUCKS 
