@@ -26,7 +26,6 @@ public class Truck extends Thread {
 		this.perishableGoods = perishableGoods;
 		this.task = task;
 		this.truckState = TruckState.NEW;
-		this.setName(licensePlate);
 	}
 
 	@Override

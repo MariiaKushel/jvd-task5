@@ -115,16 +115,14 @@ public class LogisticsCenter {
 	}
 
 	public void refreshGoodsQuantity() {
-		locker.lock();
+
 		logger.info(Thread.currentThread().getName() + " revisor check goods quantity ====== " + currentGoodsQuantity);
-		try {
-			int current = currentGoodsQuantity.getAcquire();
-			if (current <= LOW_LIMIT || current >= UPPER_LIMIT) {
-				currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPAСITY);
-				logger.info(Thread.currentThread().getName() + " refreshGoodsQuantity ============== " + currentGoodsQuantity);
-			}
-		} finally {
-			locker.unlock();
+
+		int current = currentGoodsQuantity.get();
+		if (current <= LOW_LIMIT || current >= UPPER_LIMIT) {
+			currentGoodsQuantity.set(HALF_LOGISTICS_CENTER_CAPAСITY);
+			logger.info(
+					Thread.currentThread().getName() + " refreshGoodsQuantity ============== " + currentGoodsQuantity);
 		}
 	}
 

@@ -30,7 +30,6 @@ public class Main {
 		TruckParserImpl parser = new TruckParserImpl();
 
 		try {
-
 			List<String> lines = reader.read("data\\trucks.txt");
 			List<Truck> trucks = parser.parse(lines);
 
